@@ -44,11 +44,11 @@ export default function SurajAILogo({
       {/* Radiant Sun-Quantum Icon Emblem */}
       {showIcon && (
         <div
-          className={`relative ${iconSizes[size]} rounded-2xl bg-gradient-to-br from-cyan-400 via-blue-600 to-purple-600 p-[1.5px] shadow-[0_0_20px_rgba(6,182,212,0.35)] group-hover:shadow-[0_0_30px_rgba(168,85,247,0.55)] group-hover:scale-105 transition-all duration-300 mr-2.5`}
+          className={`relative ${iconSizes[size]} rounded-full bg-gradient-to-br from-cyan-400 via-blue-600 to-purple-600 p-[1.8px] shadow-[0_0_25px_rgba(6,182,212,0.45)] group-hover:shadow-[0_0_35px_rgba(168,85,247,0.7)] group-hover:scale-110 transition-all duration-300 mr-2.5 shrink-0`}
         >
           {/* Inner Dark Core */}
-          <div className="w-full h-full bg-[#070712] rounded-[14px] flex items-center justify-center relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-tr from-cyan-500/20 via-blue-500/10 to-purple-600/20 opacity-80 group-hover:opacity-100 transition-opacity" />
+          <div className="w-full h-full bg-[#070712] rounded-full flex items-center justify-center relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-tr from-cyan-500/30 via-blue-500/20 to-purple-600/30 opacity-90 group-hover:opacity-100 transition-opacity" />
 
             <svg
               viewBox="0 0 24 24"
