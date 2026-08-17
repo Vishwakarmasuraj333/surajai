@@ -7,9 +7,10 @@ import { useGoogleLogin } from '@react-oauth/google';
 import { useAuth } from '@/context/AuthContext';
 import SurajAILogo from '@/components/SurajAILogo';
 import CinematicLoginBg from '@/components/CinematicLoginBg';
+import { OtpVerificationModal } from '@/components/OtpVerificationModal';
 
 export default function RegisterPage() {
-  const { register, loginWithGoogle } = useAuth();
+  const { register, loginWithGoogle, setSession } = useAuth();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -18,6 +19,7 @@ export default function RegisterPage() {
   const [error, setError] = useState<string | null>(null);
   const [pulseTrigger, setPulseTrigger] = useState<number>(0);
   const [focusedInput, setFocusedInput] = useState<string | null>(null);
+  const [showOtpModal, setShowOtpModal] = useState(false);
 
   const handleGoogleLogin = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
@@ -44,6 +46,20 @@ export default function RegisterPage() {
   const hasNumber = /[0-9]/.test(password);
   const isPasswordValid = hasMinLen && hasUpper && hasLower && hasNumber;
 
+  const handleResendOtp = async (): Promise<boolean> => {
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
+    const res = await fetch(`${backendUrl}/api/auth/send-otp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data.error?.message || 'Failed to resend verification code.');
+    }
+    return true;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -58,11 +74,21 @@ export default function RegisterPage() {
 
     try {
       await register(name, email, password);
+      // Automatically send OTP code via Gmail SMTP
+      await handleResendOtp();
+      setShowOtpModal(true);
     } catch (err: any) {
       setError(err.message || 'Failed to create account.');
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleVerifySuccess = (userData: any, accessToken: string) => {
+    if (setSession) {
+      setSession(userData, accessToken);
+    }
+    window.location.href = '/workspace';
   };
 
   return (
@@ -253,6 +279,15 @@ export default function RegisterPage() {
           <a href="#" className="hover:text-cyan-400 transition-colors">Terms of Service</a>
         </div>
       </footer>
+
+      {/* 6-Digit Email OTP Modal */}
+      <OtpVerificationModal
+        isOpen={showOtpModal}
+        email={email}
+        onClose={() => setShowOtpModal(false)}
+        onVerifySuccess={handleVerifySuccess}
+        onResendOtp={handleResendOtp}
+      />
     </div>
   );
 }

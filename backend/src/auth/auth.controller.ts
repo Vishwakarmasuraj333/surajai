@@ -217,3 +217,58 @@ export const googleAuth = async (req: Request, res: Response, next: NextFunction
     next(error);
   }
 };
+
+export const sendOtp = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'INVALID_INPUT', message: 'Email is required' },
+      });
+    }
+
+    const sent = await AuthService.sendVerificationOtp(email);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        message: sent ? 'Verification code sent to your email.' : 'Email sending skipped (SMTP unconfigured).',
+        email,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const verifyOtp = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { email, otp } = req.body;
+    if (!email || !otp) {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'INVALID_INPUT', message: 'Email and 6-digit OTP code are required' },
+      });
+    }
+
+    const { user, tokens } = await AuthService.verifyOtp(
+      email,
+      otp,
+      req.headers['user-agent'],
+      req.ip
+    );
+
+    setRefreshTokenCookie(res, tokens.refreshToken);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        user,
+        accessToken: tokens.accessToken,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};

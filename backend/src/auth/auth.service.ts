@@ -400,4 +400,98 @@ export class AuthService {
       },
     };
   }
+
+  static async sendVerificationOtp(email: string): Promise<boolean> {
+    const user = await prisma.user.findUnique({
+      where: { email: email.toLowerCase() },
+    });
+
+    if (!user) {
+      const error: AppError = new Error('No account found with this email address.');
+      error.statusCode = 404;
+      error.code = 'USER_NOT_FOUND';
+      throw error;
+    }
+
+    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+
+    await prisma.emailVerificationToken.deleteMany({
+      where: { userId: user.id },
+    });
+
+    await prisma.emailVerificationToken.create({
+      data: {
+        userId: user.id,
+        token: otpCode,
+        expiresAt,
+      },
+    });
+
+    return EmailService.sendOtpEmail(user.email, otpCode);
+  }
+
+  static async verifyOtp(email: string, otpCode: string, userAgent?: string, ipAddress?: string): Promise<{ user: UserResponse; tokens: AuthTokens }> {
+    const user = await prisma.user.findUnique({
+      where: { email: email.toLowerCase() },
+    });
+
+    if (!user) {
+      const error: AppError = new Error('User account not found.');
+      error.statusCode = 404;
+      error.code = 'USER_NOT_FOUND';
+      throw error;
+    }
+
+    const verificationRecord = await prisma.emailVerificationToken.findFirst({
+      where: {
+        userId: user.id,
+        token: otpCode.trim(),
+      },
+    });
+
+    if (!verificationRecord || verificationRecord.expiresAt < new Date()) {
+      const error: AppError = new Error('Invalid or expired 6-digit OTP code.');
+      error.statusCode = 400;
+      error.code = 'INVALID_OTP';
+      throw error;
+    }
+
+    await prisma.$transaction([
+      prisma.user.update({
+        where: { id: user.id },
+        data: { emailVerified: true },
+      }),
+      prisma.emailVerificationToken.delete({
+        where: { id: verificationRecord.id },
+      }),
+    ]);
+
+    const accessToken = TokenService.generateAccessToken({
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+    });
+
+    const rawRefreshToken = TokenService.generateRefreshToken();
+    const tokenHash = TokenService.hashToken(rawRefreshToken);
+
+    await prisma.session.create({
+      data: {
+        userId: user.id,
+        refreshToken: tokenHash,
+        userAgent,
+        ipAddress,
+        expiresAt: TokenService.getRefreshTokenExpiryDate(),
+      },
+    });
+
+    return {
+      user: this.sanitizeUser(user),
+      tokens: {
+        accessToken,
+        refreshToken: rawRefreshToken,
+      },
+    };
+  }
 }
