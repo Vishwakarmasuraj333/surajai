@@ -10,7 +10,7 @@
     "start": "node dist/server.js",
     "typecheck": "node ../node_modules/typescript/bin/tsc --noEmit",
     "prisma:generate": "prisma generate",
-    "prisma:push": "prisma db push"
+    "prisma:push": "prisma db push --accept-data-loss"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
