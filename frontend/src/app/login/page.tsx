@@ -7,6 +7,7 @@ import { GoogleLogin, useGoogleLogin } from '@react-oauth/google';
 import { useAuth } from '@/context/AuthContext';
 import SurajAILogo from '@/components/SurajAILogo';
 import CinematicLoginBg from '@/components/CinematicLoginBg';
+import NeuralStartupModal from '@/components/NeuralStartupModal';
 
 export default function LoginPage() {
   const { login, loginWithGoogle } = useAuth();
@@ -127,7 +128,7 @@ export default function LoginPage() {
                 <input
                   type="email"
                   required
-                  placeholder="Enter your email"
+                  placeholder="name@company.com"
                   value={email}
                   onFocus={() => {
                     setFocusedInput('email');
@@ -163,7 +164,7 @@ export default function LoginPage() {
                 <input
                   type={showPassword ? 'text' : 'password'}
                   required
-                  placeholder="Enter your password"
+                  placeholder="••••••••••••"
                   value={password}
                   onFocus={() => {
                     setFocusedInput('password');
@@ -267,6 +268,8 @@ export default function LoginPage() {
           </div>
         </div>
       </main>
+
+      <NeuralStartupModal isOpen={loading} />
 
       {/* Radiant Footer */}
       <footer className="p-6 text-center text-[11px] text-slate-500 relative z-20 flex flex-col sm:flex-row items-center justify-between max-w-6xl mx-auto w-full gap-3">

@@ -454,133 +454,123 @@ export default function CinematicLoginBg({ pulseTrigger = 0, focusedField = null
       const sideAlpha = isMobile ? 0.4 : 1.0;
 
       // =========================================================================
-      // --- LEFT SIDE: MASTERPIECE HOLOGRAPHIC DIGITAL HUMAN HEAD & FACE ---
+      // --- LEFT SIDE: FUTURISTIC DATA INTEGRATION & AI ARCHITECTURE NETWORK ---
       // =========================================================================
-      const faceCenterY = height * 0.38 + cameraOffsetY * 0.7;
+      const archCenterY = height * 0.38 + cameraOffsetY * 0.7;
 
       ctx.save();
-      ctx.translate(faceCenterX, faceCenterY);
+      ctx.translate(faceCenterX, archCenterY);
       ctx.scale(faceScale, faceScale);
       ctx.globalAlpha = sideAlpha;
 
-      // 1. Soft Volumetric Neon Silhouette Fill behind Face
-      ctx.beginPath();
-      ctx.moveTo(faceLandmarks[0].x, faceLandmarks[0].y);
-      faceLandmarks.forEach((pt) => ctx.lineTo(pt.x, pt.y));
-      ctx.closePath();
-
-      const faceFillGrad = ctx.createLinearGradient(-80, -100, 20, 100);
-      faceFillGrad.addColorStop(0, 'rgba(6, 182, 212, 0.16)');
-      faceFillGrad.addColorStop(0.5, 'rgba(59, 130, 246, 0.12)');
-      faceFillGrad.addColorStop(1, 'rgba(139, 92, 246, 0.08)');
-      ctx.fillStyle = faceFillGrad;
-      ctx.fill();
-
-      // 2. Outer Neon Head Silhouette Outline Beam
-      ctx.beginPath();
-      ctx.moveTo(faceLandmarks[0].x, faceLandmarks[0].y);
-      [1, 2, 11, 12, 17, 15, 19, 20, 21, 26, 28, 29, 30, 31, 33, 9, 8, 7, 6, 5, 4, 3, 0].forEach((idx) => {
-        ctx.lineTo(faceLandmarks[idx].x, faceLandmarks[idx].y);
-      });
-      ctx.closePath();
-      ctx.strokeStyle = '#38bdf8';
-      ctx.lineWidth = 2.2;
-      ctx.shadowColor = '#38bdf8';
-      ctx.shadowBlur = 15;
-      ctx.stroke();
-      ctx.shadowBlur = 0;
-
-      // 3. Dense Wireframe Facial Grid Lines
-      ctx.lineWidth = 1.1;
-      faceConnections.forEach(([i1, i2], idx) => {
-        const p1 = faceLandmarks[i1];
-        const p2 = faceLandmarks[i2];
-
-        const seqIllum = Math.sin(time * 3.5 - idx * 0.3) > 0.1;
-        const edgeGrad = ctx.createLinearGradient(p1.x, p1.y, p2.x, p2.y);
-        edgeGrad.addColorStop(0, seqIllum ? '#38bdf8' : 'rgba(56, 189, 248, 0.4)');
-        edgeGrad.addColorStop(1, 'rgba(168, 85, 247, 0.5)');
-
-        ctx.strokeStyle = edgeGrad;
+      // Concentric Pulsing Ripples (Data Integration Core Waves)
+      for (let r = 1; r <= 3; r++) {
+        const waveRadius = 35 * r + Math.sin(time * 3 + r) * 6;
         ctx.beginPath();
-        ctx.moveTo(p1.x, p1.y);
-        ctx.lineTo(p2.x, p2.y);
+        ctx.arc(0, 0, waveRadius, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(6, 182, 212, ${0.35 - r * 0.08})`;
+        ctx.lineWidth = 1.4;
+        ctx.stroke();
+      }
+
+      // Interconnected Architecture Nodes
+      const archNodes = [
+        { label: 'TiDB CLOUD', angle: -Math.PI / 2, dist: 110, color: '#38bdf8' },
+        { label: 'RAG VECTOR DB', angle: -Math.PI / 6, dist: 125, color: '#a855f7' },
+        { label: 'GEMINI 1.5 PRO', angle: Math.PI / 6, dist: 130, color: '#34d399' },
+        { label: 'DALL-E 3 VISION', angle: Math.PI / 2, dist: 115, color: '#f43f5e' },
+        { label: 'EXPRESS GATEWAY', angle: (5 * Math.PI) / 6, dist: 120, color: '#fbbf24' },
+        { label: 'AI MEMORY ENGINE', angle: (-5 * Math.PI) / 6, dist: 125, color: '#818cf8' },
+      ];
+
+      // Render Connection Vectors & Data Pulse Particles
+      archNodes.forEach((node, i) => {
+        const nx = Math.cos(node.angle + time * 0.15) * node.dist;
+        const ny = Math.sin(node.angle + time * 0.15) * node.dist;
+
+        // Line to Central Core
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(nx, ny);
+        ctx.strokeStyle = `rgba(56, 189, 248, 0.4)`;
+        ctx.lineWidth = 1.6;
         ctx.stroke();
 
-        // Data particles traveling along facial grid
-        const pProg = (time * 0.9 + idx * 0.12) % 1;
-        const px = p1.x + (p2.x - p1.x) * pProg;
-        const py = p1.y + (p2.y - p1.y) * pProg;
+        // Cross-Connection line to next node
+        const nextNode = archNodes[(i + 1) % archNodes.length];
+        const nnx = Math.cos(nextNode.angle + time * 0.15) * nextNode.dist;
+        const nny = Math.sin(nextNode.angle + time * 0.15) * nextNode.dist;
+        ctx.beginPath();
+        ctx.moveTo(nx, ny);
+        ctx.lineTo(nnx, nny);
+        ctx.strokeStyle = `rgba(168, 85, 247, 0.25)`;
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        // Traveling Data Particles
+        const particlePos = (time * 1.2 + i * 0.3) % 1;
+        const px = nx * particlePos;
+        const py = ny * particlePos;
 
         ctx.beginPath();
-        ctx.arc(px, py, 1.8, 0, Math.PI * 2);
+        ctx.arc(px, py, 2.5, 0, Math.PI * 2);
         ctx.fillStyle = '#ffffff';
-        ctx.shadowColor = '#38bdf8';
-        ctx.shadowBlur = 6;
-        ctx.fill();
-        ctx.shadowBlur = 0;
-      });
-
-      // 4. Facial Nodes (Landmarks)
-      faceLandmarks.forEach((p, idx) => {
-        const nPulse = 2.2 + Math.sin(time * 3.5 + idx) * 1.0;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, nPulse, 0, Math.PI * 2);
-        ctx.fillStyle = idx % 3 === 0 ? '#38bdf8' : idx % 3 === 1 ? '#c084fc' : '#06b6d4';
-        ctx.shadowColor = '#38bdf8';
+        ctx.shadowColor = node.color;
         ctx.shadowBlur = 8;
         ctx.fill();
         ctx.shadowBlur = 0;
+
+        // Outer Node Circle
+        ctx.save();
+        ctx.translate(nx, ny);
+
+        ctx.beginPath();
+        ctx.arc(0, 0, 22, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(8, 12, 28, 0.92)';
+        ctx.strokeStyle = node.color;
+        ctx.lineWidth = 2;
+        ctx.shadowColor = node.color;
+        ctx.shadowBlur = 12;
+        ctx.fill();
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+
+        // Node Label
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '800 7px Inter, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(node.label.split(' ')[0], 0, -2);
+        ctx.fillText(node.label.split(' ')[1] || '', 0, 6);
+
+        ctx.restore();
       });
 
-      // 5. Glowing Cybernetic Eye Iris
-      const eyePt = faceLandmarks[15]; // Outer Eye
-      ctx.beginPath();
-      ctx.arc(eyePt.x, eyePt.y, 4.5, 0, Math.PI * 2);
-      ctx.fillStyle = '#ffffff';
-      ctx.shadowColor = '#06b6d4';
-      ctx.shadowBlur = 16;
-      ctx.fill();
-      ctx.shadowBlur = 0;
-
-      // 6. Temple Biometric HUD Ring
-      ctx.save();
-      ctx.translate(-25, -60);
-      ctx.rotate(time * 0.4);
-
+      // Central Core Node (DATA INTEGRATION)
       ctx.beginPath();
       ctx.arc(0, 0, 32, 0, Math.PI * 2);
-      ctx.strokeStyle = 'rgba(56, 189, 248, 0.65)';
-      ctx.lineWidth = 1.2;
-      ctx.setLineDash([10, 14, 4, 10]);
+      ctx.fillStyle = 'rgba(6, 182, 212, 0.25)';
+      ctx.strokeStyle = '#06b6d4';
+      ctx.lineWidth = 3;
+      ctx.shadowColor = '#06b6d4';
+      ctx.shadowBlur = 24;
+      ctx.fill();
       ctx.stroke();
+      ctx.shadowBlur = 0;
 
-      ctx.rotate(-time * 0.8);
-      ctx.beginPath();
-      ctx.arc(0, 0, 22, 0, Math.PI * 2);
-      ctx.strokeStyle = 'rgba(192, 132, 252, 0.75)';
-      ctx.lineWidth = 1.4;
-      ctx.setLineDash([16, 8]);
-      ctx.stroke();
-      ctx.setLineDash([]);
-      ctx.restore();
-
-      // 7. Holographic Laser Scan Line sweeping across face
-      const faceScanY = -115 + ((time * 65) % 220);
-      const faceScanGrad = ctx.createLinearGradient(0, faceScanY - 6, 0, faceScanY + 6);
-      faceScanGrad.addColorStop(0, 'transparent');
-      faceScanGrad.addColorStop(0.5, 'rgba(56, 189, 248, 0.6)');
-      faceScanGrad.addColorStop(1, 'transparent');
-
-      ctx.fillStyle = faceScanGrad;
-      ctx.fillRect(-90, faceScanY - 6, 120, 12);
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '900 9px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('DATA', 0, -5);
+      ctx.fillText('INTEGRATION', 0, 5);
 
       // HUD Metrics Label
       ctx.fillStyle = 'rgba(56, 189, 248, 0.9)';
       ctx.font = '700 8px monospace';
       ctx.textAlign = 'left';
-      ctx.fillText('BIOMETRIC_ID: ACTIVE', -80, -125);
-      ctx.fillText('FACIAL_SYNAPSE: 99.9%', -80, -113);
+      ctx.fillText('DATA_INTEGRATION: ACTIVE', -75, -125);
+      ctx.fillText('ARCHITECTURE: MULTI-NODE', -75, -113);
 
       ctx.restore();
 

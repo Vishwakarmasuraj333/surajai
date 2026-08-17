@@ -8,6 +8,7 @@ import { useAuth } from '@/context/AuthContext';
 import SurajAILogo from '@/components/SurajAILogo';
 import CinematicLoginBg from '@/components/CinematicLoginBg';
 import { OtpVerificationModal } from '@/components/OtpVerificationModal';
+import NeuralStartupModal from '@/components/NeuralStartupModal';
 
 export default function RegisterPage() {
   const { register, loginWithGoogle, setSession } = useAuth();
@@ -156,7 +157,7 @@ export default function RegisterPage() {
                 <input
                   type="email"
                   required
-                  placeholder="user@example.com"
+                  placeholder="name@company.com"
                   value={email}
                   onFocus={() => setFocusedInput('email')}
                   onBlur={() => setFocusedInput(null)}
@@ -173,7 +174,7 @@ export default function RegisterPage() {
                 <input
                   type={showPassword ? 'text' : 'password'}
                   required
-                  placeholder="••••••••"
+                  placeholder="••••••••••••"
                   value={password}
                   onFocus={() => setFocusedInput('password')}
                   onBlur={() => setFocusedInput(null)}
@@ -265,6 +266,8 @@ export default function RegisterPage() {
           </div>
         </div>
       </main>
+
+      <NeuralStartupModal isOpen={loading} />
 
       <footer className="p-6 text-center text-[11px] text-slate-500 relative z-20 flex flex-col sm:flex-row items-center justify-between max-w-6xl mx-auto w-full gap-3">
         <div className="flex items-center gap-2">

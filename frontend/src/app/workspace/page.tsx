@@ -248,6 +248,14 @@ export default function WorkspaceApp() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, streamingContent]);
 
+  // Auto-expand textarea on typing or pasting large text
+  useEffect(() => {
+    if (composerInputRef.current) {
+      composerInputRef.current.style.height = 'auto';
+      composerInputRef.current.style.height = Math.min(composerInputRef.current.scrollHeight, 200) + 'px';
+    }
+  }, [inputMessage]);
+
   // Load specific conversation messages
   const handleSelectConversation = async (convId: string) => {
     try {
@@ -1782,24 +1790,49 @@ export default function WorkspaceApp() {
                     {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
                   </button>
 
-                  <textarea
-                    ref={composerInputRef}
-                    rows={1}
-                    value={inputMessage}
-                    onChange={(e) => setInputMessage(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        handleSendMessage();
+                  <div className="flex-1 flex items-center gap-1.5 min-w-0 bg-transparent">
+                    <textarea
+                      ref={composerInputRef}
+                      rows={1}
+                      value={inputMessage}
+                      onChange={(e) => setInputMessage(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          handleSendMessage();
+                        }
+                      }}
+                      placeholder={
+                        composerMode === 'image'
+                          ? "Describe the image you want to create..."
+                          : "Ask SurajAI anything..."
                       }
-                    }}
-                    placeholder={
-                      composerMode === 'image'
-                        ? "Describe the image you want to create..."
-                        : "Ask SurajAI anything..."
-                    }
-                    className="flex-1 p-2.5 bg-transparent text-sm resize-none focus:outline-none placeholder:text-slate-500 font-sans"
-                  />
+                      className="flex-1 p-2.5 bg-transparent text-sm resize-none focus:outline-none placeholder:text-slate-500 font-sans max-h-[200px] overflow-y-auto"
+                    />
+
+                    {inputMessage.trim().length > 0 && (
+                      <div className="flex items-center gap-1 pr-1">
+                        <button
+                          type="button"
+                          onClick={() => navigator.clipboard.writeText(inputMessage)}
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-purple-300 hover:bg-white/10 transition-colors"
+                          title="Copy input text"
+                          aria-label="Copy input text"
+                        >
+                          <Copy className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setInputMessage('')}
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-white/10 transition-colors"
+                          title="Clear input text"
+                          aria-label="Clear input text"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
 
                   {isStreaming ? (
                     <button
