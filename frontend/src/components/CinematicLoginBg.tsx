@@ -418,14 +418,109 @@ export default function CinematicLoginBg({ pulseTrigger = 0, focusedField = null
 
       // Inner Core Atmosphere
       const coreGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, portalRadius);
-      coreGrad.addColorStop(0, 'rgba(56, 189, 248, 0.25)');
-      coreGrad.addColorStop(0.5, 'rgba(139, 92, 246, 0.18)');
+      coreGrad.addColorStop(0, 'rgba(56, 189, 248, 0.35)');
+      coreGrad.addColorStop(0.5, 'rgba(139, 92, 246, 0.22)');
       coreGrad.addColorStop(0.85, 'rgba(6, 182, 212, 0.28)');
       coreGrad.addColorStop(1, 'transparent');
       ctx.fillStyle = coreGrad;
       ctx.beginPath();
       ctx.arc(0, 0, portalRadius * 0.98, 0, Math.PI * 2);
       ctx.fill();
+
+      // =========================================================================
+      // --- CENTER PORTAL ANIMATED SURAJ AI BRANDING & CYCLING SUBTITLES ---
+      // =========================================================================
+      ctx.save();
+
+      // Rotating HUD Target Reticle / Crosshair inside portal
+      ctx.rotate(-time * 0.2);
+      const reticleRadius = portalRadius * 0.65;
+      ctx.strokeStyle = 'rgba(56, 189, 248, 0.35)';
+      ctx.lineWidth = 1.2;
+      ctx.setLineDash([12, 24]);
+      ctx.beginPath();
+      ctx.arc(0, 0, reticleRadius, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // 4 HUD Corner Ticks
+      for (let k = 0; k < 4; k++) {
+        const tickAngle = (k * Math.PI) / 2;
+        const tx1 = Math.cos(tickAngle) * (reticleRadius - 8);
+        const ty1 = Math.sin(tickAngle) * (reticleRadius - 8);
+        const tx2 = Math.cos(tickAngle) * (reticleRadius + 8);
+        const ty2 = Math.sin(tickAngle) * (reticleRadius + 8);
+
+        ctx.strokeStyle = '#38bdf8';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(tx1, ty1);
+        ctx.lineTo(tx2, ty2);
+        ctx.stroke();
+      }
+      ctx.restore();
+
+      // Floating / Pulsing "SURAJ AI" Text Title
+      const textPulseScale = 1.0 + Math.sin(time * 2.5) * 0.03;
+      const fontSize = Math.max(16, portalRadius * 0.26);
+
+      ctx.save();
+      ctx.scale(textPulseScale, textPulseScale);
+
+      // Glowing Neon Text Background Shadow
+      ctx.shadowColor = '#06b6d4';
+      ctx.shadowBlur = 25;
+      
+      const textGrad = ctx.createLinearGradient(-portalRadius * 0.5, 0, portalRadius * 0.5, 0);
+      textGrad.addColorStop(0, '#38bdf8');
+      textGrad.addColorStop(0.5, '#ffffff');
+      textGrad.addColorStop(1, '#c084fc');
+
+      ctx.fillStyle = textGrad;
+      ctx.font = `900 ${fontSize}px Inter, system-ui, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('SURAJ AI', 0, -portalRadius * 0.08);
+      ctx.shadowBlur = 0;
+
+      // Cycling Animated Subtitles
+      const subtitles = [
+        '⚡ MULTI-MODEL ENGINE',
+        '✨ GEMINI 1.5 • GPT-4O',
+        '🎨 DALL-E 3 & FLUX STUDIO',
+        '🧠 RAG VECTOR MEMORY',
+        '🔒 ENTERPRISE SECURITY',
+        '🚀 60 FPS NEURAL CORE',
+      ];
+
+      const cyclePeriod = 2.4; // seconds per subtitle
+      const totalCycleTime = time % (subtitles.length * cyclePeriod);
+      const subIndex = Math.floor(totalCycleTime / cyclePeriod);
+      const subProgress = (totalCycleTime % cyclePeriod) / cyclePeriod;
+
+      // Smooth Fade-in & Fade-out Alpha calculation
+      let subAlpha = 1.0;
+      if (subProgress < 0.2) {
+        subAlpha = subProgress / 0.2; // Fade in
+      } else if (subProgress > 0.8) {
+        subAlpha = (1.0 - subProgress) / 0.2; // Fade out
+      }
+
+      const subYOffset = portalRadius * 0.18 + (1 - subAlpha) * 4;
+      const subFontSize = Math.max(8, portalRadius * 0.09);
+
+      ctx.globalAlpha = Math.max(0, Math.min(1, subAlpha));
+      ctx.fillStyle = '#38bdf8';
+      ctx.font = `800 ${subFontSize}px monospace`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.shadowColor = '#a855f7';
+      ctx.shadowBlur = 12;
+      ctx.fillText(subtitles[subIndex], 0, subYOffset);
+      ctx.shadowBlur = 0;
+      ctx.globalAlpha = 1.0;
+
+      ctx.restore();
 
       // Electric Sparks Traveling along Ring Circumference
       sparks.forEach((spark) => {
