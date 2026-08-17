@@ -158,10 +158,11 @@ export const handleChatStream = async (req: Request, res: Response, next: NextFu
       toolResults: executedToolResults,
     });
 
-    // 6. Configure SSE Headers
+    // 6. Configure SSE Headers (with anti-buffering for instant real-time streaming)
     res.setHeader('Content-Type', 'text/event-stream');
-    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Cache-Control', 'no-cache, no-transform');
     res.setHeader('Connection', 'keep-alive');
+    res.setHeader('X-Accel-Buffering', 'no');
     res.flushHeaders?.();
 
     // Send initial SSE metadata event
@@ -172,6 +173,7 @@ export const handleChatStream = async (req: Request, res: Response, next: NextFu
       memoriesUsed: contextOutput.memoriesUsed,
       tools: executedToolResults,
     })}\n\n`);
+    (res as any).flush?.();
 
     // 7. Stream AI Response
     let assistantFullResponse = '';
@@ -184,6 +186,7 @@ export const handleChatStream = async (req: Request, res: Response, next: NextFu
         if (chunk.type === 'text_delta') {
           assistantFullResponse += chunk.content || '';
           res.write(`data: ${JSON.stringify(chunk)}\n\n`);
+          (res as any).flush?.();
         }
       },
       { model: requestedModel || conversation.model }
