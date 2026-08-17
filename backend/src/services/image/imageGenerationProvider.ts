@@ -116,38 +116,51 @@ export class OpenAIImageProvider implements ImageGenerationProvider {
       height = 1792;
     }
 
-    const response = await openai.images.generate({
-      model: 'dall-e-3',
-      prompt: prompt,
-      n: 1,
-      size,
-      response_format: 'b64_json',
-    });
+    try {
+      const response = await openai.images.generate({
+        model: 'dall-e-3',
+        prompt: prompt,
+        n: 1,
+        size,
+      });
 
-    const imageData = response.data?.[0];
-    const b64Data = imageData?.b64_json;
-    const revisedPrompt = imageData?.revised_prompt || prompt;
+      const imageData = response.data?.[0];
+      const imageUrl = imageData?.url;
+      const b64Data = imageData?.b64_json;
+      const revisedPrompt = imageData?.revised_prompt || prompt;
 
-    if (!b64Data) {
-      throw new Error('OpenAI Image generation returned empty image payload.');
+      let buffer: Buffer;
+
+      if (b64Data) {
+        buffer = Buffer.from(b64Data, 'base64');
+      } else if (imageUrl) {
+        const imgRes = await fetch(imageUrl);
+        const arrayBuffer = await imgRes.arrayBuffer();
+        buffer = Buffer.from(arrayBuffer);
+      } else {
+        throw new Error('OpenAI Image generation returned empty image response payload.');
+      }
+
+      const fileId = crypto.randomUUID();
+      const filename = `openai_gen_${fileId}.png`;
+      const fileUrl = await storageProvider.uploadFile(buffer, filename);
+
+      return {
+        storageKey: fileUrl,
+        mimeType: 'image/png',
+        width,
+        height,
+        fileUrl,
+        provider: 'openai',
+        model: 'dall-e-3',
+        prompt,
+        revisedPrompt,
+      };
+    } catch (err: any) {
+      console.warn('[OpenAIImageProvider] DALL-E 3 failed, falling back to Pollinations FLUX:', err.message);
+      const fallback = new PollinationsImageProvider();
+      return fallback.generate(options);
     }
-
-    const buffer = Buffer.from(b64Data, 'base64');
-    const fileId = crypto.randomUUID();
-    const filename = `openai_gen_${fileId}.png`;
-    const fileUrl = await storageProvider.uploadFile(buffer, filename);
-
-    return {
-      storageKey: fileUrl,
-      mimeType: 'image/png',
-      width,
-      height,
-      fileUrl,
-      provider: 'openai',
-      model: 'dall-e-3',
-      prompt,
-      revisedPrompt,
-    };
   }
 }
 
