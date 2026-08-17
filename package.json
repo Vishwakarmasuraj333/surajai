@@ -1,0 +1,36 @@
+{
+  "name": "surajai-platform",
+  "version": "1.0.0",
+  "private": true,
+  "description": "SurajAI - Production-Grade AI SaaS Platform Workspace",
+  "workspaces": [
+    "shared",
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "dev:backend": "npm --prefix backend run dev",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "build:shared": "npm --prefix shared run build",
+    "build:backend": "npm --prefix backend run build",
+    "build:frontend": "npm --prefix frontend run build",
+    "build": "npm run build:backend && npm run build:frontend",
+    "typecheck": "npm --prefix backend run typecheck && npm --prefix frontend run typecheck",
+    "test": "npm --prefix backend run test",
+    "lint": "npm --prefix frontend run lint",
+    "db:generate": "npm --prefix backend run prisma:generate",
+    "db:push": "npm --prefix backend run prisma:push"
+  },
+  "keywords": [
+    "ai",
+    "saas",
+    "workspace",
+    "rag",
+    "surajai",
+    "nextjs",
+    "express",
+    "prisma"
+  ],
+  "author": "SurajAI Engineering",
+  "license": "MIT"
+}

@@ -1,0 +1,139 @@
+'use client';
+
+import { useState } from 'react';
+import Link from 'next/link';
+import { Sparkles, Mail, ArrowRight, CheckCircle2, AlertCircle } from 'lucide-react';
+
+const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
+
+export default function ForgotPasswordPage() {
+  const [email, setEmail] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [devToken, setDevToken] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+
+    try {
+      const res = await fetch(`${API_BASE}/api/auth/forgot-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      const json = await res.json();
+      if (!json.success) {
+        throw new Error(json.error?.message || 'Request failed.');
+      }
+      setSubmitted(true);
+      if (json.data?.resetToken) {
+        setDevToken(json.data.resetToken);
+      }
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-[#07070a] text-gray-100 flex flex-col justify-between relative overflow-hidden">
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-brand-600/15 rounded-full blur-[130px] pointer-events-none" />
+
+      <header className="p-6">
+        <Link href="/" className="inline-flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 p-0.5 shadow-md">
+            <div className="w-full h-full bg-[#0a0a0f] rounded-[10px] flex items-center justify-center">
+              <Sparkles className="w-4 h-4 text-brand-400" />
+            </div>
+          </div>
+          <span className="text-xl font-bold tracking-tight text-white">
+            SURAJ<span className="text-brand-400">AI</span>
+          </span>
+        </Link>
+      </header>
+
+      <main className="flex-1 flex items-center justify-center p-4">
+        <div className="w-full max-w-md glass-card p-8 rounded-3xl border border-surface-border shadow-2xl space-y-6">
+          <div className="text-center space-y-2">
+            <h1 className="text-2xl font-extrabold text-white">Reset Password</h1>
+            <p className="text-xs text-gray-400">Enter your account email to receive reset instructions</p>
+          </div>
+
+          {error && (
+            <div className="p-3.5 rounded-xl bg-red-500/10 border border-red-500/30 flex items-start gap-3 text-xs text-red-300">
+              <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+              <span>{error}</span>
+            </div>
+          )}
+
+          {submitted ? (
+            <div className="p-6 rounded-2xl bg-green-500/10 border border-green-500/30 text-center space-y-4">
+              <CheckCircle2 className="w-10 h-10 text-green-400 mx-auto" />
+              <p className="text-xs text-gray-300 leading-relaxed">
+                If an account with <strong>{email}</strong> exists, password reset instructions have been dispatched.
+              </p>
+              {devToken && (
+                <div className="p-3 bg-surface-dark border border-surface-border rounded-xl text-left text-[11px] font-mono break-all text-brand-300">
+                  <span className="text-gray-400 block font-sans font-semibold mb-1">Development Reset Link:</span>
+                  <Link href={`/reset-password?token=${devToken}`} className="underline">
+                    /reset-password?token={devToken}
+                  </Link>
+                </div>
+              )}
+              <Link href="/login" className="inline-block text-xs font-semibold text-brand-400 hover:text-brand-300">
+                Back to Sign In
+              </Link>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-gray-300 block">Email Address</label>
+                <div className="relative">
+                  <Mail className="w-4 h-4 text-gray-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="email"
+                    required
+                    placeholder="user@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full bg-[#0d0d14] border border-surface-border rounded-xl pl-10 pr-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-brand-500 transition-colors"
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full inline-flex items-center justify-center gap-2 bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-500 hover:to-brand-400 text-white font-semibold py-3.5 px-4 rounded-xl shadow-lg shadow-brand-600/30 transition-all text-sm disabled:opacity-50"
+              >
+                {loading ? (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <>
+                    <span>Send Instructions</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </>
+                )}
+              </button>
+            </form>
+          )}
+
+          <div className="text-center text-xs text-gray-400 pt-2 border-t border-surface-border/50">
+            Remember your password?{' '}
+            <Link href="/login" className="font-semibold text-brand-400 hover:text-brand-300 transition-colors">
+              Sign In
+            </Link>
+          </div>
+        </div>
+      </main>
+
+      <footer className="p-6 text-center text-xs text-gray-500">
+        © {new Date().getFullYear()} SurajAI Platform.
+      </footer>
+    </div>
+  );
+}

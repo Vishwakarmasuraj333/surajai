@@ -1,0 +1,292 @@
+import bcrypt from 'bcrypt';
+import crypto from 'crypto';
+import { prisma } from '../db/prisma.js';
+import { TokenService } from './token.service.js';
+import { UserResponse, AuthTokens } from './auth.types.js';
+import { AppError } from '../middlewares/errorHandler.js';
+import { Role } from '@prisma/client';
+
+export class AuthService {
+  private static readonly SALT_ROUNDS = 12;
+
+  static sanitizeUser(user: any): UserResponse {
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      avatar: user.avatar,
+      emailVerified: user.emailVerified,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    };
+  }
+
+  static async register(data: { name: string; email: string; password: string }, userAgent?: string, ipAddress?: string): Promise<{ user: UserResponse; tokens: AuthTokens }> {
+    const existingUser = await prisma.user.findUnique({
+      where: { email: data.email },
+    });
+
+    if (existingUser) {
+      const error: AppError = new Error('An account with this email already exists.');
+      error.statusCode = 409;
+      error.code = 'EMAIL_ALREADY_EXISTS';
+      throw error;
+    }
+
+    const passwordHash = await bcrypt.hash(data.password, this.SALT_ROUNDS);
+
+    const user = await prisma.user.create({
+      data: {
+        name: data.name,
+        email: data.email,
+        passwordHash,
+        role: Role.USER,
+      },
+    });
+
+    const accessToken = TokenService.generateAccessToken({
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+    });
+
+    const rawRefreshToken = TokenService.generateRefreshToken();
+    const tokenHash = TokenService.hashToken(rawRefreshToken);
+
+    await prisma.session.create({
+      data: {
+        userId: user.id,
+        refreshToken: tokenHash,
+        userAgent,
+        ipAddress,
+        expiresAt: TokenService.getRefreshTokenExpiryDate(),
+      },
+    });
+
+    return {
+      user: this.sanitizeUser(user),
+      tokens: {
+        accessToken,
+        refreshToken: rawRefreshToken,
+      },
+    };
+  }
+
+  static async login(data: { email: string; password: string }, userAgent?: string, ipAddress?: string): Promise<{ user: UserResponse; tokens: AuthTokens }> {
+    const user = await prisma.user.findUnique({
+      where: { email: data.email },
+    });
+
+    if (!user) {
+      const error: AppError = new Error('Invalid email or password.');
+      error.statusCode = 401;
+      error.code = 'INVALID_CREDENTIALS';
+      throw error;
+    }
+
+    const isPasswordValid = await bcrypt.compare(data.password, user.passwordHash);
+
+    if (!isPasswordValid) {
+      const error: AppError = new Error('Invalid email or password.');
+      error.statusCode = 401;
+      error.code = 'INVALID_CREDENTIALS';
+      throw error;
+    }
+
+    const accessToken = TokenService.generateAccessToken({
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+    });
+
+    const rawRefreshToken = TokenService.generateRefreshToken();
+    const tokenHash = TokenService.hashToken(rawRefreshToken);
+
+    await prisma.session.create({
+      data: {
+        userId: user.id,
+        refreshToken: tokenHash,
+        userAgent,
+        ipAddress,
+        expiresAt: TokenService.getRefreshTokenExpiryDate(),
+      },
+    });
+
+    return {
+      user: this.sanitizeUser(user),
+      tokens: {
+        accessToken,
+        refreshToken: rawRefreshToken,
+      },
+    };
+  }
+
+  static async refreshToken(rawRefreshToken: string): Promise<{ accessToken: string; refreshToken: string }> {
+    if (!rawRefreshToken) {
+      const error: AppError = new Error('Refresh token is required.');
+      error.statusCode = 401;
+      error.code = 'REFRESH_TOKEN_REQUIRED';
+      throw error;
+    }
+
+    const tokenHash = TokenService.hashToken(rawRefreshToken);
+
+    const session = await prisma.session.findFirst({
+      where: { refreshToken: tokenHash },
+      include: { user: true },
+    });
+
+    if (!session || session.expiresAt < new Date()) {
+      if (session) {
+        await prisma.session.delete({ where: { id: session.id } });
+      }
+      const error: AppError = new Error('Invalid or expired refresh token session.');
+      error.statusCode = 401;
+      error.code = 'INVALID_REFRESH_TOKEN';
+      throw error;
+    }
+
+    // Refresh Token Rotation
+    await prisma.session.delete({ where: { id: session.id } });
+
+    const newAccessToken = TokenService.generateAccessToken({
+      userId: session.user.id,
+      email: session.user.email,
+      role: session.user.role,
+    });
+
+    const newRawRefreshToken = TokenService.generateRefreshToken();
+    const newTokenHash = TokenService.hashToken(newRawRefreshToken);
+
+    await prisma.session.create({
+      data: {
+        userId: session.user.id,
+        refreshToken: newTokenHash,
+        userAgent: session.userAgent,
+        ipAddress: session.ipAddress,
+        expiresAt: TokenService.getRefreshTokenExpiryDate(),
+      },
+    });
+
+    return {
+      accessToken: newAccessToken,
+      refreshToken: newRawRefreshToken,
+    };
+  }
+
+  static async logout(rawRefreshToken: string): Promise<void> {
+    if (!rawRefreshToken) return;
+
+    const tokenHash = TokenService.hashToken(rawRefreshToken);
+
+    await prisma.session.deleteMany({
+      where: { refreshToken: tokenHash },
+    });
+  }
+
+  static async getCurrentUser(userId: string): Promise<UserResponse> {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      const error: AppError = new Error('User not found.');
+      error.statusCode = 404;
+      error.code = 'USER_NOT_FOUND';
+      throw error;
+    }
+
+    return this.sanitizeUser(user);
+  }
+
+  static async changePassword(userId: string, data: { currentPassword: string; newPassword: string }): Promise<void> {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      const error: AppError = new Error('User not found.');
+      error.statusCode = 404;
+      error.code = 'USER_NOT_FOUND';
+      throw error;
+    }
+
+    const isValid = await bcrypt.compare(data.currentPassword, user.passwordHash);
+
+    if (!isValid) {
+      const error: AppError = new Error('Current password is incorrect.');
+      error.statusCode = 400;
+      error.code = 'INVALID_CURRENT_PASSWORD';
+      throw error;
+    }
+
+    const newPasswordHash = await bcrypt.hash(data.newPassword, this.SALT_ROUNDS);
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: { passwordHash: newPasswordHash },
+    });
+
+    // Invalidate existing sessions
+    await prisma.session.deleteMany({
+      where: { userId },
+    });
+  }
+
+  static async forgotPassword(email: string): Promise<{ token?: string }> {
+    const user = await prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (!user) {
+      // Return success to prevent email enumeration
+      return {};
+    }
+
+    const token = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date(Date.now() + 3600000); // 1 hour
+
+    await prisma.passwordResetToken.deleteMany({
+      where: { userId: user.id },
+    });
+
+    await prisma.passwordResetToken.create({
+      data: {
+        userId: user.id,
+        token,
+        expiresAt,
+      },
+    });
+
+    return { token };
+  }
+
+  static async resetPassword(token: string, newPassword: string): Promise<void> {
+    const resetRecord = await prisma.passwordResetToken.findUnique({
+      where: { token },
+    });
+
+    if (!resetRecord || resetRecord.expiresAt < new Date()) {
+      const error: AppError = new Error('Invalid or expired password reset token.');
+      error.statusCode = 400;
+      error.code = 'INVALID_RESET_TOKEN';
+      throw error;
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, this.SALT_ROUNDS);
+
+    await prisma.$transaction([
+      prisma.user.update({
+        where: { id: resetRecord.userId },
+        data: { passwordHash },
+      }),
+      prisma.passwordResetToken.delete({
+        where: { id: resetRecord.id },
+      }),
+      prisma.session.deleteMany({
+        where: { userId: resetRecord.userId },
+      }),
+    ]);
+  }
+}

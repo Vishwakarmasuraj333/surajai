@@ -1,0 +1,13 @@
+{
+  "name": "@surajai/shared",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "node ../node_modules/typescript/bin/tsc",
+    "typecheck": "node ../node_modules/typescript/bin/tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3"
+  }
+}
