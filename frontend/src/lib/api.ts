@@ -9,8 +9,6 @@ export function getBackendUrl(): string {
   return envUrl || 'http://localhost:5000';
 }
 
-const API_BASE = getBackendUrl();
-
 let refreshingPromise: Promise<string | null> | null = null;
 
 export async function refreshAccessToken(): Promise<string | null> {
@@ -21,7 +19,8 @@ export async function refreshAccessToken(): Promise<string | null> {
   refreshingPromise = (async () => {
     try {
       const storedToken = typeof window !== 'undefined' ? localStorage.getItem('surajai_access_token') : null;
-      const res = await fetch(`${API_BASE}/api/auth/refresh`, {
+      const baseUrl = getBackendUrl();
+      const res = await fetch(`${baseUrl}/api/auth/refresh`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -69,7 +68,8 @@ export async function fetchWithAuth(endpoint: string, options: RequestInit = {},
   }
 
   try {
-    const res = await fetch(`${API_BASE}${endpoint}`, {
+    const baseUrl = getBackendUrl();
+    const res = await fetch(`${baseUrl}${endpoint}`, {
       ...options,
       headers,
       credentials: 'include',
@@ -112,8 +112,9 @@ export async function streamChatResponse(
   retryCount = 0
 ): Promise<{ conversationId?: string; fullText: string }> {
   let token = typeof window !== 'undefined' ? localStorage.getItem('surajai_access_token') : null;
+  const baseUrl = getBackendUrl();
 
-  const res = await fetch(`${API_BASE}${endpoint}`, {
+  const res = await fetch(`${baseUrl}${endpoint}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -140,15 +141,17 @@ export async function streamChatResponse(
 
   if (!res.ok) {
     const errorJson = await res.json().catch(() => ({}));
-    throw new Error(errorJson.error?.message || `HTTP ${res.status}: Failed to stream chat response`);
+    throw new Error(errorJson.error?.message || `HTTP error! status: ${res.status}`);
   }
 
   const reader = res.body?.getReader();
-  if (!reader) throw new Error('Response body is not readable');
+  if (!reader) {
+    throw new Error('Response body is not readable');
+  }
 
   const decoder = new TextDecoder();
   let fullText = '';
-  let activeConvId: string | undefined = undefined;
+  let conversationId: string | undefined = body.conversationId;
 
   while (true) {
     const { done, value } = await reader.read();
@@ -159,33 +162,46 @@ export async function streamChatResponse(
 
     for (const line of lines) {
       if (line.startsWith('data: ')) {
+        const dataStr = line.slice(6).trim();
+        if (!dataStr) continue;
+
         try {
-          const event = JSON.parse(line.replace('data: ', ''));
-          onChunk(event);
-          if (event.type === 'message_start' && event.conversationId) {
-            activeConvId = event.conversationId;
-          } else if (event.type === 'text_delta' && event.content) {
-            fullText += event.content;
-          } else if (event.type === 'error') {
-            throw new Error(event.error?.message || 'AI streaming error');
+          const chunkEvent = JSON.parse(dataStr);
+          if (chunkEvent.type === 'metadata' && chunkEvent.conversationId) {
+            conversationId = chunkEvent.conversationId;
+          } else if (chunkEvent.type === 'text_delta' && chunkEvent.content) {
+            fullText += chunkEvent.content;
           }
-        } catch (e: any) {
-          if (e.message && e.message !== 'Unexpected end of JSON input') {
-            console.warn('SSE Parse Event Warning:', e);
-          }
+          onChunk(chunkEvent);
+        } catch (err) {
+          console.warn('Failed to parse SSE line:', dataStr, err);
         }
       }
     }
   }
 
-  return { conversationId: activeConvId, fullText };
+  return { conversationId, fullText };
 }
 
-// Conversation Management Helpers
-export async function bulkDeleteConversations(conversationIds: string[]) {
-  return fetchWithAuth('/api/conversations/bulk', {
+// Conversation Management API Helpers
+export async function getConversations() {
+  return fetchWithAuth('/api/conversations');
+}
+
+export async function getConversation(id: string) {
+  return fetchWithAuth(`/api/conversations/${id}`);
+}
+
+export async function deleteConversation(id: string) {
+  return fetchWithAuth(`/api/conversations/${id}`, {
     method: 'DELETE',
-    body: JSON.stringify({ conversationIds }),
+  });
+}
+
+export async function bulkDeleteConversations(ids: string[]) {
+  return fetchWithAuth('/api/conversations/bulk-delete', {
+    method: 'POST',
+    body: JSON.stringify({ ids }),
   });
 }
 
@@ -195,9 +211,10 @@ export async function deleteAllConversations() {
   });
 }
 
-export async function toggleArchiveConversation(id: string) {
-  return fetchWithAuth(`/api/conversations/${id}/archive`, {
+export async function updateConversationTitle(id: string, title: string) {
+  return fetchWithAuth(`/api/conversations/${id}`, {
     method: 'PATCH',
+    body: JSON.stringify({ title }),
   });
 }
 
@@ -207,34 +224,16 @@ export async function togglePinConversation(id: string) {
   });
 }
 
-export async function updateConversationTitle(id: string, title: string) {
-  return fetchWithAuth(`/api/conversations/${id}`, {
+export async function toggleArchiveConversation(id: string) {
+  return fetchWithAuth(`/api/conversations/${id}/archive`, {
     method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ title }),
   });
 }
 
-export async function exportConversation(id: string, format: 'json' | 'txt' | 'md' = 'json') {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('surajai_access_token') : null;
-  const res = await fetch(`${API_BASE}/api/conversations/${id}/export?format=${format}`, {
-    headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-  });
-
-  if (!res.ok) throw new Error('Failed to export conversation');
-
-  const blob = await res.blob();
-  const url = window.URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `conversation-${id}.${format}`;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  window.URL.revokeObjectURL(url);
+export async function exportConversation(id: string, format: 'json' | 'markdown' | 'txt' = 'json') {
+  return fetchWithAuth(`/api/conversations/${id}/export?format=${format}`);
 }
 
-// Message Helpers
 export async function editMessage(id: string, content: string) {
   return fetchWithAuth(`/api/messages/${id}`, {
     method: 'PATCH',
@@ -248,7 +247,7 @@ export async function deleteMessage(id: string) {
   });
 }
 
-// Image Generation & Management Helpers
+// Image Generation Studio APIs
 export async function generateImage(prompt: string, aspectRatio = '1:1', model = 'flux', conversationId?: string, provider = 'openai') {
   return fetchWithAuth('/api/images/generate', {
     method: 'POST',
@@ -256,17 +255,23 @@ export async function generateImage(prompt: string, aspectRatio = '1:1', model =
   });
 }
 
-export async function getGeneratedImages(filter = 'all') {
-  return fetchWithAuth(`/api/images?filter=${filter}`);
+export async function getGeneratedImages(page = 1, limit = 20) {
+  return fetchWithAuth(`/api/images?page=${page}&limit=${limit}`);
 }
 
 export async function downloadImage(id: string) {
   const token = typeof window !== 'undefined' ? localStorage.getItem('surajai_access_token') : null;
-  const res = await fetch(`${API_BASE}/api/images/${id}/download`, {
-    headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+  const baseUrl = getBackendUrl();
+  const res = await fetch(`${baseUrl}/api/images/${id}/download`, {
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    credentials: 'include',
   });
 
-  if (!res.ok) throw new Error('Failed to download image');
+  if (!res.ok) {
+    throw new Error('Image download failed');
+  }
 
   const blob = await res.blob();
   const url = window.URL.createObjectURL(blob);

@@ -361,7 +361,8 @@ export default function WorkspaceApp() {
   const handleExportConversation = async (e: React.MouseEvent, convId: string, format: 'json' | 'txt' | 'md') => {
     e.stopPropagation();
     try {
-      await exportConversation(convId, format);
+      const targetFormat = format === 'md' ? 'markdown' : format;
+      await exportConversation(convId, targetFormat);
     } catch (err: any) {
       setErrorMsg(err.message || 'Failed to export conversation');
     }

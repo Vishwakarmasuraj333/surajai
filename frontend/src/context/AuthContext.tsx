@@ -27,8 +27,6 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const API_BASE = getBackendUrl();
-
 async function fetchWithRetry(url: string, options: RequestInit, retries = 5, delay = 1000): Promise<Response | null> {
   for (let i = 0; i < retries; i++) {
     try {
@@ -77,7 +75,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         if (storedToken) {
           setAccessToken(storedToken);
-          let res = await fetchWithRetry(`${API_BASE}/api/auth/me`, {
+          const baseUrl = getBackendUrl();
+          let res = await fetchWithRetry(`${baseUrl}/api/auth/me`, {
             headers: {
               Authorization: `Bearer ${storedToken}`,
             },
@@ -96,7 +95,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             if (newToken) {
               storedToken = newToken;
               setAccessToken(newToken);
-              res = await fetchWithRetry(`${API_BASE}/api/auth/me`, {
+              res = await fetchWithRetry(`${baseUrl}/api/auth/me`, {
                 headers: {
                   Authorization: `Bearer ${newToken}`,
                 },
@@ -127,8 +126,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, password: string) => {
     let res: Response;
+    const baseUrl = getBackendUrl();
+
     try {
-      res = await fetch(`${API_BASE}/api/auth/login`, {
+      res = await fetch(`${baseUrl}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -153,8 +154,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const loginWithGoogle = async (credential: string) => {
     let res: Response;
+    const baseUrl = getBackendUrl();
+
     try {
-      res = await fetch(`${API_BASE}/api/auth/google`, {
+      res = await fetch(`${baseUrl}/api/auth/google`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -179,8 +182,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const register = async (name: string, email: string, password: string) => {
     let res: Response;
+    const baseUrl = getBackendUrl();
+
     try {
-      res = await fetch(`${API_BASE}/api/auth/register`, {
+      res = await fetch(`${baseUrl}/api/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -205,8 +210,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = async () => {
     try {
+      const baseUrl = getBackendUrl();
       if (accessToken) {
-        await fetch(`${API_BASE}/api/auth/logout`, {
+        await fetch(`${baseUrl}/api/auth/logout`, {
           method: 'POST',
           headers: {
             Authorization: `Bearer ${accessToken}`,

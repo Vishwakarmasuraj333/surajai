@@ -86,7 +86,7 @@ export default function ImageGalleryView() {
     setIsLoading(true);
     setErrorMsg(null);
     try {
-      const data = await getGeneratedImages(filter);
+      const data = await getGeneratedImages(1, 50);
       if (data.images) {
         setImages(data.images);
       }
