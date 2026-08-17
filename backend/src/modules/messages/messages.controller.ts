@@ -126,7 +126,7 @@ export const editMessage = async (req: Request, res: Response, next: NextFunctio
       take: 10,
     });
 
-    const recentHistory: AIMessage[] = previousDbMessages.map((m) => ({
+    const recentHistory: AIMessage[] = previousDbMessages.map((m: any) => ({
       role: m.role.toLowerCase() as any,
       content: m.content,
     }));
@@ -208,7 +208,7 @@ export const deleteMessage = async (req: Request, res: Response, next: NextFunct
     }
 
     // Transactional deletion of message and associated toolCalls / revisions
-    await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx: any) => {
       await tx.toolCall.deleteMany({ where: { messageId: id } });
       await (tx as any).messageRevision.deleteMany({ where: { messageId: id } });
       await tx.message.delete({ where: { id } });

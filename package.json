@@ -11,10 +11,11 @@
   "scripts": {
     "dev:backend": "npm --prefix backend run dev",
     "dev:frontend": "npm --prefix frontend run dev",
+    "postinstall": "npm run db:generate",
     "build:shared": "npm --prefix shared run build",
     "build:backend": "npm --prefix backend run build",
     "build:frontend": "npm --prefix frontend run build",
-    "build": "npm run build:backend && npm run build:frontend",
+    "build": "npm run db:generate && npm run build:backend && npm run build:frontend",
     "typecheck": "npm --prefix backend run typecheck && npm --prefix frontend run typecheck",
     "test": "npm --prefix backend run test",
     "lint": "npm --prefix frontend run lint",

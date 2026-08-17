@@ -118,7 +118,7 @@ Output JSON array strictly:`;
 
       const keywords = promptText.toLowerCase().split(/\W+/).filter((w) => w.length > 3);
       
-      const scored = allMemories.map((m) => {
+      const scored = allMemories.map((m: any) => {
         let score = m.importance || 5;
         const lowerContent = m.content.toLowerCase();
         for (const kw of keywords) {
@@ -129,12 +129,12 @@ Output JSON array strictly:`;
         return { memory: m, score };
       });
 
-      scored.sort((a, b) => b.score - a.score);
+      scored.sort((a: any, b: any) => b.score - a.score);
 
-      const selected = scored.slice(0, limit).map((s) => s.memory);
+      const selected = scored.slice(0, limit).map((s: any) => s.memory);
 
       // Update lastUsedAt timestamp asynchronously
-      const ids = selected.map((m) => m.id);
+      const ids = selected.map((m: any) => m.id);
       if (ids.length > 0) {
         await prisma.memory.updateMany({
           where: { id: { in: ids } },
@@ -142,7 +142,7 @@ Output JSON array strictly:`;
         }).catch(() => {});
       }
 
-      return selected.map((m) => ({
+      return selected.map((m: any) => ({
         id: m.id,
         content: m.content,
         type: m.type,

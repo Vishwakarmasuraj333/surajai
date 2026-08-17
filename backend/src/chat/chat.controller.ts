@@ -108,7 +108,7 @@ export const handleChatStream = async (req: Request, res: Response, next: NextFu
     const formattedHistory: AIMessage[] = recentDbMessages
       .reverse()
       .slice(0, -1)
-      .map((m) => ({
+      .map((m: any) => ({
         role: m.role.toLowerCase() as any,
         content: m.content,
       }));

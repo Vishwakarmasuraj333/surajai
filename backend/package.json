@@ -6,7 +6,7 @@
     "dev": "tsx watch src/server.ts",
     "test": "tsx src/tests/platform.test.ts",
     "test:ai": "tsx src/services/ai/ai.test.ts",
-    "build": "node ../node_modules/typescript/bin/tsc",
+    "build": "npm run prisma:generate && node ../node_modules/typescript/bin/tsc",
     "start": "node dist/server.js",
     "typecheck": "node ../node_modules/typescript/bin/tsc --noEmit",
     "prisma:generate": "node ../node_modules/prisma/build/index.js generate",

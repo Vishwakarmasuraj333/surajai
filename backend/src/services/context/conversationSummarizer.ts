@@ -28,7 +28,7 @@ export class ConversationSummarizer {
 
       if (olderMessages.length < 6) return;
 
-      const formatted = olderMessages.map((m) => `${m.role}: ${m.content}`).join('\n');
+      const formatted = olderMessages.map((m: any) => `${m.role}: ${m.content}`).join('\n');
 
       const summaryPrompt = `Summarize the key background points, context, user goals, and assistant answers from this past conversation history:
 ${formatted}

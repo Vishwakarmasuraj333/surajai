@@ -184,7 +184,7 @@ export const bulkDeleteConversations = async (req: Request, res: Response, next:
       select: { id: true },
     });
 
-    const validIds = userConvs.map((c) => c.id);
+    const validIds = userConvs.map((c: any) => c.id);
 
     if (validIds.length === 0) {
       return res.status(400).json({ success: false, error: { code: 'BAD_REQUEST', message: 'No valid conversations found to delete' } });
@@ -294,7 +294,7 @@ export const exportConversation = async (req: Request, res: Response, next: Next
 
     if (format === 'txt' || format === 'text') {
       const textOutput = conversation.messages
-        .map((m) => `[${m.role}] (${m.createdAt.toISOString()}):\n${m.content}\n`)
+        .map((m: any) => `[${m.role}] (${m.createdAt.toISOString()}):\n${m.content}\n`)
         .join('\n----------------------------------------\n\n');
 
       res.setHeader('Content-Type', 'text/plain');
@@ -305,7 +305,7 @@ export const exportConversation = async (req: Request, res: Response, next: Next
     if (format === 'md' || format === 'markdown') {
       const mdOutput = `# ${conversation.title}\n\n*Exported on ${new Date().toISOString()}*\n\n` +
         conversation.messages
-          .map((m) => `### ${m.role === 'USER' ? '👤 User' : '🤖 SurajAI'}\n*${m.createdAt.toLocaleString()}*\n\n${m.content}\n`)
+          .map((m: any) => `### ${m.role === 'USER' ? '👤 User' : '🤖 SurajAI'}\n*${m.createdAt.toLocaleString()}*\n\n${m.content}\n`)
           .join('\n---\n\n');
 
       res.setHeader('Content-Type', 'text/markdown');
@@ -338,7 +338,7 @@ export const regenerateResponse = async (req: Request, res: Response, next: Next
       return res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Conversation not found or access denied' } });
     }
 
-    const userMessages = conversation.messages.filter((m) => m.role === 'USER');
+    const userMessages = conversation.messages.filter((m: any) => m.role === 'USER');
     if (userMessages.length === 0) {
       return res.status(400).json({ success: false, error: { code: 'BAD_REQUEST', message: 'No user message to regenerate' } });
     }
@@ -353,8 +353,8 @@ export const regenerateResponse = async (req: Request, res: Response, next: Next
     });
 
     const recentMessages: AIMessage[] = conversation.messages
-      .filter((m) => m.id !== lastUserMsg.id && m.createdAt < lastUserMsg.createdAt)
-      .map((m) => ({
+      .filter((m: any) => m.id !== lastUserMsg.id && m.createdAt < lastUserMsg.createdAt)
+      .map((m: any) => ({
         role: m.role.toLowerCase() as 'user' | 'assistant' | 'system' | 'tool',
         content: m.content,
       }));
