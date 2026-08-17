@@ -4,7 +4,7 @@ export function getBackendUrl(): string {
     return envUrl;
   }
   if (typeof window !== 'undefined' && !window.location.hostname.includes('localhost') && !window.location.hostname.includes('127.0.0.1')) {
-    return envUrl || 'https://surajai-backend.onrender.com';
+    return envUrl || 'https://surajai.onrender.com';
   }
   return envUrl || 'http://localhost:5000';
 }

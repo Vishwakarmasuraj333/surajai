@@ -81,6 +81,16 @@ app.use((req, _res, next) => {
   next();
 });
 
+// Root Health Check Handler for Cloud Load Balancers
+app.get('/', (_req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'SurajAI Production API Engine Running',
+    health: '/api/health',
+    timestamp: new Date().toISOString(),
+  });
+});
+
 // API Routes
 app.use('/api', routes);
 
