@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { refreshAccessToken } from '@/lib/api';
+import { refreshAccessToken, getBackendUrl } from '@/lib/api';
 
 export interface User {
   id: string;
@@ -27,7 +27,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
+const API_BASE = getBackendUrl();
 
 async function fetchWithRetry(url: string, options: RequestInit, retries = 5, delay = 1000): Promise<Response | null> {
   for (let i = 0; i < retries; i++) {

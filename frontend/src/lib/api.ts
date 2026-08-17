@@ -1,4 +1,15 @@
-const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
+export function getBackendUrl(): string {
+  const envUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+  if (envUrl && !envUrl.includes('localhost')) {
+    return envUrl;
+  }
+  if (typeof window !== 'undefined' && !window.location.hostname.includes('localhost') && !window.location.hostname.includes('127.0.0.1')) {
+    return envUrl || 'https://surajai-backend.onrender.com';
+  }
+  return envUrl || 'http://localhost:5000';
+}
+
+const API_BASE = getBackendUrl();
 
 let refreshingPromise: Promise<string | null> | null = null;
 
