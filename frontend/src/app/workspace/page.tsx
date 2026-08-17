@@ -1182,8 +1182,7 @@ export default function WorkspaceApp() {
             <div className="flex-1 overflow-y-auto p-4 md:p-6 pb-40 space-y-6">
               {messages.length === 0 && !isStreaming ? (
                 <div className="min-h-full flex flex-col items-center justify-center text-center space-y-5 max-w-xl mx-auto py-12 pt-16">
-                  <div className="relative p-5 rounded-full bg-gradient-to-br from-cyan-500/20 via-blue-600/30 to-purple-600/40 border border-cyan-400/50 shadow-[0_0_40px_rgba(6,182,212,0.45)] group hover:scale-110 transition-transform duration-300 my-3 flex items-center justify-center">
-                    <div className="absolute -inset-2 rounded-full border border-cyan-400/30 animate-ping opacity-20 pointer-events-none" />
+                  <div className="relative group hover:scale-110 transition-transform duration-300 my-3 flex items-center justify-center">
                     <SurajAILogo size="xl" showText={false} />
                   </div>
                   <h2 className="text-2xl md:text-3xl font-extrabold tracking-tight bg-gradient-to-r from-purple-700 via-indigo-600 to-purple-800 dark:from-purple-300 dark:via-indigo-200 dark:to-white bg-clip-text text-transparent">
