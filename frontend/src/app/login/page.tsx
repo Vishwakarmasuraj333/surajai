@@ -80,14 +80,14 @@ export default function LoginPage() {
       </header>
 
       {/* Centered Ultra-Premium Glassmorphic Login Card */}
-      <main className="flex-1 flex items-center justify-center p-4 sm:p-6 relative z-20">
-        <div className="w-full max-w-[440px] cinematic-glass-card rounded-3xl p-8 sm:p-10 space-y-6 transition-all duration-500 relative overflow-hidden">
+      <main className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 relative z-20 my-auto">
+        <div className="w-full max-w-[420px] cinematic-glass-card rounded-3xl p-7 sm:p-9 space-y-5 transition-all duration-500 relative overflow-hidden mt-6 sm:mt-10">
           
           {/* Subtle Top Holographic Border Highlight */}
           <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-400 via-purple-500 to-transparent opacity-90" />
 
           {/* Card Header & Branding */}
-          <div className="text-center space-y-2.5">
+          <div className="text-center space-y-2">
             <div className="flex justify-center mb-1">
               <span className="inline-flex items-center gap-1.5 px-4 py-1 rounded-full border border-cyan-500/30 bg-cyan-950/40 shadow-[0_0_20px_rgba(6,182,212,0.25)]">
                 <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
@@ -265,6 +265,30 @@ export default function LoginPage() {
             >
               Create Account
             </Link>
+          </div>
+        </div>
+
+        {/* Futuristic System Capabilities Ticker */}
+        <div className="w-full max-w-[420px] mx-auto mt-5 p-4 rounded-2xl bg-[#090a16]/80 border border-cyan-500/20 backdrop-blur-xl shadow-[0_0_30px_rgba(6,182,212,0.15)] space-y-2.5">
+          <div className="flex items-center justify-between text-[11px] font-mono text-slate-400 border-b border-slate-800/80 pb-2">
+            <span className="flex items-center gap-1.5 text-cyan-400 font-bold tracking-wider">
+              <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" /> SURAJ AI ENGINES
+            </span>
+            <span className="text-purple-400 font-semibold">● 100% LIVE</span>
+          </div>
+          <div className="grid grid-cols-2 gap-2 text-[11px] font-medium text-slate-300">
+            <div className="p-2 rounded-xl bg-slate-900/70 border border-slate-800/80 flex items-center gap-2">
+              <span className="text-cyan-400">⚡</span> Gemini 1.5 & GPT-4o
+            </div>
+            <div className="p-2 rounded-xl bg-slate-900/70 border border-slate-800/80 flex items-center gap-2">
+              <span className="text-purple-400">💾</span> TiDB Cloud MySQL
+            </div>
+            <div className="p-2 rounded-xl bg-slate-900/70 border border-slate-800/80 flex items-center gap-2">
+              <span className="text-rose-400">🎨</span> Real FLUX & DALL-E 3
+            </div>
+            <div className="p-2 rounded-xl bg-slate-900/70 border border-slate-800/80 flex items-center gap-2">
+              <span className="text-emerald-400">🧠</span> Persistent RAG Memory
+            </div>
           </div>
         </div>
       </main>

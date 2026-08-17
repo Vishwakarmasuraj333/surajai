@@ -107,8 +107,8 @@ export default function RegisterPage() {
         </div>
       </header>
 
-      <main className="flex-1 flex items-center justify-center p-4 sm:p-6 relative z-20">
-        <div className="w-full max-w-[450px] cinematic-glass-card rounded-3xl p-8 sm:p-10 space-y-6 transition-all duration-500 relative overflow-hidden">
+      <main className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 relative z-20 my-auto">
+        <div className="w-full max-w-[420px] cinematic-glass-card rounded-3xl p-7 sm:p-9 space-y-5 transition-all duration-500 relative overflow-hidden mt-6 sm:mt-10">
           
           <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-400 to-purple-500 opacity-80" />
 
@@ -119,7 +119,9 @@ export default function RegisterPage() {
                 <SurajAILogo showIcon={false} size="xs" />
               </span>
             </div>
-            <h1 className="text-3xl font-extrabold text-white tracking-tight drop-shadow-md">Get Started</h1>
+            <h1 className="text-3xl font-extrabold text-white tracking-tight drop-shadow-md">
+              Get Started
+            </h1>
             <p className="text-xs text-slate-400 max-w-xs mx-auto leading-relaxed">
               Create your production-grade AI workspace
             </p>
@@ -193,27 +195,30 @@ export default function RegisterPage() {
               {/* Password strength ticks */}
               <div className="grid grid-cols-2 gap-2 pt-2 text-[11px]">
                 <div className={`flex items-center gap-1.5 ${hasMinLen ? 'text-emerald-400' : 'text-slate-500'}`}>
-                  <Check className="w-3 h-3" /> 8+ Characters
+                  <Check className="w-3.5 h-3.5" /> 8+ Characters
                 </div>
                 <div className={`flex items-center gap-1.5 ${hasUpper ? 'text-emerald-400' : 'text-slate-500'}`}>
-                  <Check className="w-3 h-3" /> Uppercase Letter
+                  <Check className="w-3.5 h-3.5" /> Uppercase Letter
                 </div>
                 <div className={`flex items-center gap-1.5 ${hasLower ? 'text-emerald-400' : 'text-slate-500'}`}>
-                  <Check className="w-3 h-3" /> Lowercase Letter
+                  <Check className="w-3.5 h-3.5" /> Lowercase Letter
                 </div>
                 <div className={`flex items-center gap-1.5 ${hasNumber ? 'text-emerald-400' : 'text-slate-500'}`}>
-                  <Check className="w-3 h-3" /> Number
+                  <Check className="w-3.5 h-3.5" /> Number
                 </div>
               </div>
             </div>
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || !isPasswordValid}
               className="w-full light-sweep-btn inline-flex items-center justify-center gap-2 bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-600 hover:from-cyan-300 hover:via-blue-400 hover:to-indigo-500 text-white font-bold py-3.5 px-5 rounded-xl shadow-[0_0_30px_rgba(6,182,212,0.4)] hover:shadow-[0_0_40px_rgba(168,85,247,0.55)] hover:scale-[1.02] active:scale-[0.98] transition-all text-sm disabled:opacity-50 mt-2"
             >
               {loading ? (
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <span className="text-xs font-mono tracking-wider">Creating Account & Sending OTP...</span>
+                </div>
               ) : (
                 <>
                   <span>Create Account</span>
@@ -263,6 +268,30 @@ export default function RegisterPage() {
             <Link href="/login" className="font-bold text-cyan-400 hover:text-cyan-300 transition-colors ml-1 underline decoration-cyan-500/40 underline-offset-4">
               Sign In
             </Link>
+          </div>
+        </div>
+
+        {/* Futuristic System Capabilities Ticker */}
+        <div className="w-full max-w-[420px] mx-auto mt-5 p-4 rounded-2xl bg-[#090a16]/80 border border-cyan-500/20 backdrop-blur-xl shadow-[0_0_30px_rgba(6,182,212,0.15)] space-y-2.5">
+          <div className="flex items-center justify-between text-[11px] font-mono text-slate-400 border-b border-slate-800/80 pb-2">
+            <span className="flex items-center gap-1.5 text-cyan-400 font-bold tracking-wider">
+              <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" /> SURAJ AI ENGINES
+            </span>
+            <span className="text-purple-400 font-semibold">● 100% LIVE</span>
+          </div>
+          <div className="grid grid-cols-2 gap-2 text-[11px] font-medium text-slate-300">
+            <div className="p-2 rounded-xl bg-slate-900/70 border border-slate-800/80 flex items-center gap-2">
+              <span className="text-cyan-400">⚡</span> Gemini 1.5 & GPT-4o
+            </div>
+            <div className="p-2 rounded-xl bg-slate-900/70 border border-slate-800/80 flex items-center gap-2">
+              <span className="text-purple-400">💾</span> TiDB Cloud MySQL
+            </div>
+            <div className="p-2 rounded-xl bg-slate-900/70 border border-slate-800/80 flex items-center gap-2">
+              <span className="text-rose-400">🎨</span> Real FLUX & DALL-E 3
+            </div>
+            <div className="p-2 rounded-xl bg-slate-900/70 border border-slate-800/80 flex items-center gap-2">
+              <span className="text-emerald-400">🧠</span> Persistent RAG Memory
+            </div>
           </div>
         </div>
       </main>
