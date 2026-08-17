@@ -7,6 +7,7 @@ import { TokenService } from './token.service.js';
 import { UserResponse, AuthTokens } from './auth.types.js';
 import { AppError } from '../middlewares/errorHandler.js';
 import { Role } from '@prisma/client';
+import { EmailService } from '../services/email/email.service.js';
 
 export class AuthService {
   private static readonly SALT_ROUNDS = 12;
@@ -260,6 +261,9 @@ export class AuthService {
         expiresAt,
       },
     });
+
+    // Send email asynchronously via Gmail SMTP
+    await EmailService.sendPasswordResetEmail(email, token);
 
     return { token };
   }
