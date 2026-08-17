@@ -85,8 +85,8 @@ export async function fetchWithAuth(endpoint: string, options: RequestInit = {},
 
     return json.data;
   } catch (err: any) {
-    if ((err.name === 'TypeError' || err.message?.includes('Failed to fetch')) && retryCount < 2) {
-      await new Promise((r) => setTimeout(r, 800));
+    if ((err.name === 'TypeError' || err.message?.includes('Failed to fetch') || err.message?.includes('NetworkError')) && retryCount < 4) {
+      await new Promise((r) => setTimeout(r, 1200 * (retryCount + 1)));
       return fetchWithAuth(endpoint, options, retryCount + 1);
     }
     throw err;

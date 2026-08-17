@@ -29,14 +29,14 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
 
-async function fetchWithRetry(url: string, options: RequestInit, retries = 3, delay = 800): Promise<Response | null> {
+async function fetchWithRetry(url: string, options: RequestInit, retries = 5, delay = 1000): Promise<Response | null> {
   for (let i = 0; i < retries; i++) {
     try {
       const res = await fetch(url, options);
       return res;
     } catch (err: any) {
       if (i === retries - 1) return null;
-      await new Promise((r) => setTimeout(r, delay));
+      await new Promise((r) => setTimeout(r, delay * Math.pow(1.3, i)));
     }
   }
   return null;
