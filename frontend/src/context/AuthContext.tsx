@@ -22,6 +22,7 @@ interface AuthContextType {
   loginWithGoogle: (credential: string) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  setSession: (user: User, token: string) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -223,6 +224,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const setSession = (userData: User, token: string) => {
+    setUser(userData);
+    setAccessToken(token);
+    localStorage.setItem('surajai_access_token', token);
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -234,6 +241,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         loginWithGoogle,
         register,
         logout,
+        setSession,
       }}
     >
       {children}
