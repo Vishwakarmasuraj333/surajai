@@ -6,11 +6,13 @@ import { checkDatabaseConnection } from './db/prisma.js';
 const PORT = env.PORT || 5000;
 
 async function startServer() {
-  await checkDatabaseConnection();
+  app.listen(PORT, '0.0.0.0', () => {
+    logger.info(`🚀 SurajAI Backend API running on port ${PORT} on 0.0.0.0 in ${env.NODE_ENV} mode.`);
+    logger.info(`📡 Health Endpoint: http://0.0.0.0:${PORT}/api/health`);
+  });
 
-  app.listen(PORT, () => {
-    logger.info(`🚀 SurajAI Backend API running on port ${PORT} in ${env.NODE_ENV} mode.`);
-    logger.info(`📡 Health Endpoint: http://localhost:${PORT}/api/health`);
+  checkDatabaseConnection().catch((err) => {
+    logger.warn('Database connection check notice:', err);
   });
 }
 
