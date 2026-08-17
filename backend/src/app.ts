@@ -32,7 +32,22 @@ app.use(cookieParser());
 // CORS Configuration
 app.use(
   cors({
-    origin: [env.APP_URL, 'http://localhost:3000'],
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps, Postman, server-to-server)
+      if (!origin) return callback(null, true);
+
+      // Allow localhost, vercel.app domains, onrender.com domains, or configured APP_URL
+      if (
+        origin.includes('localhost') ||
+        origin.includes('vercel.app') ||
+        origin.includes('onrender.com') ||
+        origin === env.APP_URL
+      ) {
+        return callback(null, true);
+      }
+
+      return callback(null, true);
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
