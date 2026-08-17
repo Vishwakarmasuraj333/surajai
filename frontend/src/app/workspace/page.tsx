@@ -18,6 +18,7 @@ import {
   updateConversationTitle,
   exportConversation,
   generateImage,
+  getBackendUrl,
 } from '@/lib/api';
 import KnowledgeView from '@/components/KnowledgeView';
 import MemoriesView from '@/components/MemoriesView';
@@ -1456,7 +1457,7 @@ export default function WorkspaceApp() {
                                       src={
                                         msg.generatedImageUrl.startsWith('http://') || msg.generatedImageUrl.startsWith('https://')
                                           ? msg.generatedImageUrl
-                                          : `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'}${msg.generatedImageUrl.startsWith('/') ? '' : '/'}${msg.generatedImageUrl}`
+                                          : `${getBackendUrl()}${msg.generatedImageUrl.startsWith('/') ? '' : '/'}${msg.generatedImageUrl}`
                                       }
                                       alt="Generated AI"
                                       className="w-full h-auto object-cover"
@@ -1468,7 +1469,7 @@ export default function WorkspaceApp() {
                                           imageUrl={
                                             msg.generatedImageUrl.startsWith('http://') || msg.generatedImageUrl.startsWith('https://')
                                               ? msg.generatedImageUrl
-                                              : `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'}${msg.generatedImageUrl.startsWith('/') ? '' : '/'}${msg.generatedImageUrl}`
+                                              : `${getBackendUrl()}${msg.generatedImageUrl.startsWith('/') ? '' : '/'}${msg.generatedImageUrl}`
                                           }
                                           prompt={msg.content}
                                         />

@@ -60,17 +60,20 @@ export class PollinationsImageProvider implements ImageGenerationProvider {
 
     const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=${width}&height=${height}&seed=${seed}&model=${selectedModel}&nologo=true`;
 
-    const response = await fetch(imageUrl);
-    if (!response.ok) {
-      throw new Error(`Pollinations Image generation failed with HTTP status ${response.status}`);
+    const response = await fetch(imageUrl).catch(() => null);
+    let fileUrl = imageUrl;
+
+    if (response && response.ok) {
+      try {
+        const arrayBuffer = await response.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+        const fileId = crypto.randomUUID();
+        const filename = `gen_${fileId}.png`;
+        fileUrl = await storageProvider.uploadFile(buffer, filename);
+      } catch (e) {
+        fileUrl = imageUrl;
+      }
     }
-
-    const arrayBuffer = await response.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-
-    const fileId = crypto.randomUUID();
-    const filename = `gen_${fileId}.png`;
-    const fileUrl = await storageProvider.uploadFile(buffer, filename);
 
     return {
       storageKey: fileUrl,

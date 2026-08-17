@@ -24,6 +24,7 @@ import {
   bulkDeleteImages,
   regenerateImage,
   editImagePrompt,
+  getBackendUrl,
 } from '@/lib/api';
 import ConfirmModal from '@/components/ConfirmModal';
 
@@ -40,7 +41,7 @@ interface GeneratedImageItem {
 const getImageUrl = (url?: string): string => {
   if (!url) return '';
   if (url.startsWith('http://') || url.startsWith('https://')) return url;
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
+  const backendUrl = getBackendUrl();
   return `${backendUrl}${url.startsWith('/') ? '' : '/'}${url}`;
 };
 
