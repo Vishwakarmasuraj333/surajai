@@ -185,3 +185,35 @@ export const resetPassword = async (req: Request, res: Response, next: NextFunct
     next(error);
   }
 };
+
+export const googleAuth = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { credential, idToken } = req.body;
+    const token = credential || idToken;
+
+    if (!token) {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'INVALID_INPUT', message: 'Google OAuth credential token is required' },
+      });
+    }
+
+    const { user, tokens } = await AuthService.googleLogin(
+      token,
+      req.headers['user-agent'],
+      req.ip
+    );
+
+    setRefreshTokenCookie(res, tokens.refreshToken);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        user,
+        accessToken: tokens.accessToken,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};

@@ -26,6 +26,10 @@ const envSchema = z.object({
   ANTHROPIC_API_KEY: z.string().optional().default(''),
   AI_API_KEY: z.string().optional().default(''),
 
+  // Google OAuth Credentials
+  GOOGLE_CLIENT_ID: z.string().optional().default(''),
+  GOOGLE_CLIENT_SECRET: z.string().optional().default(''),
+
   RATE_LIMIT_WINDOW_MS: z.string().transform((val) => parseInt(val, 10)).default('900000'),
   RATE_LIMIT_MAX_REQUESTS: z.string().transform((val) => parseInt(val, 10)).default('100'),
 });

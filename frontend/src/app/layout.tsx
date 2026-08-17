@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { AuthProvider } from '@/context/AuthContext';
+import { GoogleOAuthWrapper } from '@/components/GoogleOAuthWrapper';
 
 export const metadata: Metadata = {
   title: 'SurajAI — Your Intelligent AI Workspace',
@@ -31,7 +32,9 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-screen bg-[#07070a] text-gray-100 antialiased selection:bg-brand-600 selection:text-white">
-        <AuthProvider>{children}</AuthProvider>
+        <GoogleOAuthWrapper>
+          <AuthProvider>{children}</AuthProvider>
+        </GoogleOAuthWrapper>
       </body>
     </html>
   );

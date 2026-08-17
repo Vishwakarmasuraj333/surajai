@@ -1,6 +1,8 @@
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
+import { OAuth2Client } from 'google-auth-library';
 import { prisma } from '../db/prisma.js';
+import { env } from '../config/env.js';
 import { TokenService } from './token.service.js';
 import { UserResponse, AuthTokens } from './auth.types.js';
 import { AppError } from '../middlewares/errorHandler.js';
@@ -288,5 +290,110 @@ export class AuthService {
         where: { userId: resetRecord.userId },
       }),
     ]);
+  }
+
+  static async googleLogin(token: string, userAgent?: string, ipAddress?: string): Promise<{ user: UserResponse; tokens: AuthTokens }> {
+    let email: string = '';
+    let name: string = '';
+    let avatar: string | null = null;
+
+    if (token.startsWith('ya29.') || !token.includes('.')) {
+      try {
+        const res = await fetch(`https://www.googleapis.com/oauth2/v3/userinfo?access_token=${token}`);
+        if (!res.ok) {
+          throw new Error('Failed to fetch Google user profile');
+        }
+        const profile = await res.json();
+        if (!profile.email) {
+          throw new Error('Google profile missing email');
+        }
+        email = profile.email.toLowerCase();
+        name = profile.name || profile.email.split('@')[0];
+        avatar = profile.picture || null;
+      } catch (err: any) {
+        const error: AppError = new Error('Invalid or expired Google OAuth token.');
+        error.statusCode = 401;
+        error.code = 'INVALID_GOOGLE_TOKEN';
+        throw error;
+      }
+    } else {
+      const client = new OAuth2Client(env.GOOGLE_CLIENT_ID);
+      let ticket;
+      try {
+        ticket = await client.verifyIdToken({
+          idToken: token,
+          audience: env.GOOGLE_CLIENT_ID,
+        });
+      } catch (err: any) {
+        const error: AppError = new Error('Invalid or expired Google OAuth token.');
+        error.statusCode = 401;
+        error.code = 'INVALID_GOOGLE_TOKEN';
+        throw error;
+      }
+
+      const payload = ticket.getPayload();
+      if (!payload || !payload.email) {
+        const error: AppError = new Error('Google OAuth token payload missing email.');
+        error.statusCode = 400;
+        error.code = 'INVALID_GOOGLE_PAYLOAD';
+        throw error;
+      }
+
+      email = payload.email.toLowerCase();
+      name = payload.name || payload.email.split('@')[0];
+      avatar = payload.picture || null;
+    }
+
+    let user = await prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (!user) {
+      const randomPassword = crypto.randomBytes(32).toString('hex');
+      const passwordHash = await bcrypt.hash(randomPassword, this.SALT_ROUNDS);
+
+      user = await prisma.user.create({
+        data: {
+          email,
+          name,
+          avatar,
+          passwordHash,
+          emailVerified: true,
+          role: Role.USER,
+        },
+      });
+    } else if (!user.avatar && avatar) {
+      user = await prisma.user.update({
+        where: { id: user.id },
+        data: { avatar },
+      });
+    }
+
+    const accessToken = TokenService.generateAccessToken({
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+    });
+
+    const rawRefreshToken = TokenService.generateRefreshToken();
+    const tokenHash = TokenService.hashToken(rawRefreshToken);
+
+    await prisma.session.create({
+      data: {
+        userId: user.id,
+        refreshToken: tokenHash,
+        userAgent,
+        ipAddress,
+        expiresAt: TokenService.getRefreshTokenExpiryDate(),
+      },
+    });
+
+    return {
+      user: this.sanitizeUser(user),
+      tokens: {
+        accessToken,
+        refreshToken: rawRefreshToken,
+      },
+    };
   }
 }

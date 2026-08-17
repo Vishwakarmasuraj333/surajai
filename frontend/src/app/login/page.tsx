@@ -3,12 +3,13 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { Eye, EyeOff, Lock, Mail, ArrowRight, AlertCircle, ShieldCheck, Sparkles } from 'lucide-react';
+import { useGoogleLogin } from '@react-oauth/google';
 import { useAuth } from '@/context/AuthContext';
 import SurajAILogo from '@/components/SurajAILogo';
 import CinematicLoginBg from '@/components/CinematicLoginBg';
 
 export default function LoginPage() {
-  const { login } = useAuth();
+  const { login, loginWithGoogle } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -17,6 +18,24 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [pulseTrigger, setPulseTrigger] = useState<number>(0);
   const [focusedInput, setFocusedInput] = useState<string | null>(null);
+
+  const handleGoogleLogin = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      try {
+        setLoading(true);
+        setError(null);
+        setPulseTrigger((prev) => prev + 1);
+        await loginWithGoogle(tokenResponse.access_token);
+      } catch (err: any) {
+        setError(err.message || 'Google Sign-In failed.');
+      } finally {
+        setLoading(false);
+      }
+    },
+    onError: () => {
+      setError('Google Sign-In was cancelled or failed.');
+    },
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -212,8 +231,9 @@ export default function LoginPage() {
           {/* Google OAuth Button */}
           <button
             type="button"
-            onClick={triggerGoogleLogin}
-            className="w-full inline-flex items-center justify-center gap-3 bg-[#0d0e1a]/80 hover:bg-[#141526] text-slate-200 border border-slate-700/60 hover:border-slate-500/80 font-medium py-3.5 px-4 rounded-xl shadow-md hover:scale-[1.01] active:scale-[0.99] transition-all text-xs"
+            onClick={() => handleGoogleLogin()}
+            disabled={loading}
+            className="w-full inline-flex items-center justify-center gap-3 bg-[#0d0e1a]/80 hover:bg-[#141526] text-slate-200 border border-slate-700/60 hover:border-slate-500/80 font-medium py-3.5 px-4 rounded-xl shadow-md hover:scale-[1.01] active:scale-[0.99] transition-all text-xs disabled:opacity-50"
           >
             <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
               <path

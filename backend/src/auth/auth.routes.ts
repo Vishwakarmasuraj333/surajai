@@ -9,6 +9,7 @@ import {
   changePassword,
   forgotPassword,
   resetPassword,
+  googleAuth,
 } from './auth.controller.js';
 import { requireAuth } from './auth.middleware.js';
 
@@ -31,6 +32,7 @@ const authLimiter = rateLimit({
 
 router.post('/register', authLimiter, register);
 router.post('/login', authLimiter, login);
+router.post('/google', authLimiter, googleAuth);
 router.post('/refresh', refresh);
 router.post('/logout', logout);
 

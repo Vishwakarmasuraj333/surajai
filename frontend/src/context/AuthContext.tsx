@@ -19,6 +19,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   accessToken: string | null;
   login: (email: string, password: string) => Promise<void>;
+  loginWithGoogle: (credential: string) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -149,6 +150,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     router.push('/workspace');
   };
 
+  const loginWithGoogle = async (credential: string) => {
+    let res: Response;
+    try {
+      res = await fetch(`${API_BASE}/api/auth/google`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ credential }),
+      });
+    } catch (err) {
+      throw new Error('Unable to connect to SurajAI backend server. Please verify backend server is running.');
+    }
+
+    const json = await res.json().catch(() => ({}));
+
+    if (!json.success) {
+      throw new Error(json.error?.message || 'Google OAuth Sign-In failed.');
+    }
+
+    const { user: userData, accessToken: token } = json.data;
+    setUser(userData);
+    setAccessToken(token);
+    localStorage.setItem('surajai_access_token', token);
+    router.push('/workspace');
+  };
+
   const register = async (name: string, email: string, password: string) => {
     let res: Response;
     try {
@@ -204,6 +231,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isAuthenticated: !!user,
         accessToken,
         login,
+        loginWithGoogle,
         register,
         logout,
       }}
