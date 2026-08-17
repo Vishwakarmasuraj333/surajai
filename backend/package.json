@@ -6,11 +6,11 @@
     "dev": "tsx watch src/server.ts",
     "test": "tsx src/tests/platform.test.ts",
     "test:ai": "tsx src/services/ai/ai.test.ts",
-    "build": "npm run prisma:generate && node ../node_modules/typescript/bin/tsc",
+    "build": "prisma generate && node ../node_modules/typescript/bin/tsc",
     "start": "node dist/server.js",
     "typecheck": "node ../node_modules/typescript/bin/tsc --noEmit",
-    "prisma:generate": "node ../node_modules/prisma/build/index.js generate",
-    "prisma:push": "node ../node_modules/prisma/build/index.js db push"
+    "prisma:generate": "prisma generate",
+    "prisma:push": "prisma db push"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
@@ -26,6 +26,8 @@
     "jsonwebtoken": "^9.0.2",
     "multer": "^2.2.0",
     "openai": "^7.4.0",
+    "prisma": "^5.22.0",
+    "typescript": "^5.6.3",
     "zod": "^3.23.8"
   },
   "devDependencies": {
@@ -36,8 +38,6 @@
     "@types/jsonwebtoken": "^9.0.7",
     "@types/multer": "^2.2.0",
     "@types/node": "^22.8.6",
-    "prisma": "^5.22.0",
-    "tsx": "^4.19.2",
-    "typescript": "^5.6.3"
+    "tsx": "^4.19.2"
   }
 }

@@ -11,7 +11,7 @@
   "scripts": {
     "dev:backend": "npm --prefix backend run dev",
     "dev:frontend": "npm --prefix frontend run dev",
-    "postinstall": "npm run db:generate",
+    "postinstall": "npm run db:generate || true",
     "build:shared": "npm --prefix shared run build",
     "build:backend": "npm --prefix backend run build",
     "build:frontend": "npm --prefix frontend run build",
